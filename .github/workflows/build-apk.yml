@@ -29,31 +29,31 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Instalar Gradle y preparar compilación
+      - name: Instalar Gradle Moderno y Compilar APK
         run: |
-          # Actualizar e instalar gradle nativo en el entorno por si no existe gradlew
-          sudo apt-get update && sudo apt-get install -y gradle
-
-          # Buscar la carpeta interna del proyecto ClanClashApp
+          # Buscar la carpeta interna del proyecto (ClanClashApp o similar)
           if [ -d "ClanClashApp" ]; then
             cd ClanClashApp
           else
-            # Búsqueda automática de la carpeta que contenga settings.gradle o build.gradle
             PROJECT_DIR=$(find . -name "settings.gradle" -o -name "build.gradle" | head -n 1 | xargs dirname)
             if [ -n "$PROJECT_DIR" ]; then
               cd "$PROJECT_DIR"
             fi
           fi
 
-          echo "Directorio de trabajo actual: $(pwd)"
+          echo "Directorio de trabajo: $(pwd)"
 
-          # Si no existe el archivo gradlew, lo generamos de forma automática
-          if [ ! -f "gradlew" ]; then
-            echo "Generando gradlew y wrapper faltantes..."
-            gradle wrapper
-          fi
+          # Descargar e instalar una versión moderna de Gradle (8.5) para soportar dependencyResolutionManagement
+          echo "Descargando Gradle moderno..."
+          wget -q https://services.gradle.org/distributions/gradle-8.5-bin.zip
+          unzip -q gradle-8.5-bin.zip
+          export PATH="$(pwd)/gradle-8.5/bin:$PATH"
 
-          # Dar permisos y compilar APK Debug
+          # Generar el wrapper moderno compatible con el proyecto
+          echo "Generando Gradle Wrapper..."
+          gradle wrapper --gradle-version 8.5
+
+          # Dar permisos de ejecución y compilar el APK en modo Debug
           chmod +x gradlew
           ./gradlew assembleDebug
 
