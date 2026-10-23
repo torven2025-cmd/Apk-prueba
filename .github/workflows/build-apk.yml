@@ -9,10 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
@@ -33,13 +29,22 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Compilar APK Nativo (Debug)
+      - name: Buscar gradlew y compilar APK (Debug)
         run: |
-          # Detecta automáticamente si está dentro de la carpeta ClanClashApp o en la raíz
-          if [ -d "ClanClashApp" ]; then
-            cd ClanClashApp
+          # Buscar automáticamente dónde está el archivo gradlew en el repositorio
+          GRADLEW_PATH=$(find . -name "gradlew" | head -n 1)
+          
+          if [ -z "$GRADLEW_PATH" ]; then
+            echo "ERROR CRÍTICO: No se encontró el archivo gradlew en el proyecto."
+            exit 1
           fi
           
+          # Obtener la carpeta exacta donde se encuentra gradlew
+          GRADLE_DIR=$(dirname "$GRADLEW_PATH")
+          echo "Carpeta de compilación encontrada en: $GRADLE_DIR"
+          
+          # Entrar a la carpeta, dar permisos y compilar
+          cd "$GRADLE_DIR"
           chmod +x gradlew
           ./gradlew assembleDebug
 
@@ -47,6 +52,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ClanClash-Nativo-APK
-          path: |
-            **/build/outputs/apk/debug/*.apk
-            
+          path: '**/build/outputs/apk/debug/*.apk'
+          
