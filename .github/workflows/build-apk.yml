@@ -9,6 +9,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
@@ -26,9 +30,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
 
       - name: Instalar Capacitor y preparar proyecto Android
         run: |
