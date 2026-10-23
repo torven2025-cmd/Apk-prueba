@@ -1,4 +1,4 @@
-name: Generar APK desde ZIP
+name: Compilar APK Nativo ClanClash
 
 on:
   push:
@@ -9,45 +9,49 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      - name: Descomprimir proyecto ZIP
-        run: unzip -o "*.zip"
+      - name: Descomprimir proyecto ZIP (si aplica)
+        run: |
+          ZIP_FILE=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
+          if [ -n "$ZIP_FILE" ]; then
+            echo "Descomprimiendo: $ZIP_FILE"
+            unzip -o "$ZIP_FILE"
+          else
+            echo "No se encontró archivo ZIP, usando archivos directos."
+          fi
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Configurar Java JDK 21
+      - name: Configurar Java JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
 
-      - name: Instalar Capacitor y preparar proyecto Android
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Dar permisos de ejecución a Gradle
         run: |
-          npm install
-          if [ ! -d "android" ]; then npx cap add android; fi
-          npx cap sync android
-          if [ -d "assets" ]; then npx @capacitor/assets generate --android || true; fi
-          if [ -f "scripts/patch-android.mjs" ]; then node scripts/patch-android.mjs; fi
+          # Detecta si la carpeta ClanClashApp existe y entra en ella
+          if [ -d "ClanClashApp" ]; then
+            cd ClanClashApp
+          fi
+          chmod +x gradlew
 
       - name: Compilar APK (Debug)
-        working-directory: ./android
         run: |
-          chmod +x gradlew
+          if [ -d "ClanClashApp" ]; then
+            cd ClanClashApp
+          fi
           ./gradlew assembleDebug
 
-      - name: Subir APK listo para descargar
+      - name: Subir APK generado
         uses: actions/upload-artifact@v4
         with:
-          name: ClanClash-APK
-          path: android/app/build/outputs/apk/debug/*.apk
-          
+          name: ClanClash-Nativo-APK
+          path: |
+            ClanClashApp/app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/debug/*.apk
+            
