@@ -1,4 +1,4 @@
-name: Compilar APK Nativo ClanClash
+name: Compilar APK ClanClash 3D
 
 on:
   push:
@@ -29,33 +29,37 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Instalar Gradle y compilar APK (Debug)
+      - name: Instalar Gradle y preparar compilación
         run: |
+          # Actualizar e instalar gradle nativo en el entorno por si no existe gradlew
           sudo apt-get update && sudo apt-get install -y gradle
-          
-          # Buscar la carpeta del proyecto que contiene settings.gradle
-          BUILD_DIR=$(find . -name "settings.gradle" -o -name "build.gradle" | head -n 1)
-          if [ -n "$BUILD_DIR" ]; then
-            PROJECT_DIR=$(dirname "$BUILD_DIR")
-            echo "Carpeta del proyecto encontrada: $PROJECT_DIR"
-            cd "$PROJECT_DIR"
+
+          # Buscar la carpeta interna del proyecto ClanClashApp
+          if [ -d "ClanClashApp" ]; then
+            cd ClanClashApp
           else
-            echo "ERROR: No se encontró la estructura de Gradle."
-            exit 1
+            # Búsqueda automática de la carpeta que contenga settings.gradle o build.gradle
+            PROJECT_DIR=$(find . -name "settings.gradle" -o -name "build.gradle" | head -n 1 | xargs dirname)
+            if [ -n "$PROJECT_DIR" ]; then
+              cd "$PROJECT_DIR"
+            fi
           fi
 
-          # Si el proyecto no tiene gradlew, lo generamos automáticamente
+          echo "Directorio de trabajo actual: $(pwd)"
+
+          # Si no existe el archivo gradlew, lo generamos de forma automática
           if [ ! -f "gradlew" ]; then
-            echo "Generando gradlew faltante..."
+            echo "Generando gradlew y wrapper faltantes..."
             gradle wrapper
           fi
 
+          # Dar permisos y compilar APK Debug
           chmod +x gradlew
           ./gradlew assembleDebug
 
       - name: Subir APK generado
         uses: actions/upload-artifact@v4
         with:
-          name: ClanClash-Nativo-APK
+          name: ClanClash-3D-APK
           path: '**/build/outputs/apk/debug/*.apk'
           
