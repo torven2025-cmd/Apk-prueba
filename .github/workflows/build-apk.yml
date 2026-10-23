@@ -26,7 +26,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
       - name: Instalar Capacitor y preparar proyecto Android
         run: |
