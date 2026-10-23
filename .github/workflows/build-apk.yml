@@ -9,11 +9,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      - name: Descomprimir proyecto ZIP (si aplica)
+      - name: Descomprimir proyecto ZIP
         run: |
           ZIP_FILE=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
           if [ -n "$ZIP_FILE" ]; then
@@ -29,22 +33,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Dar permisos de ejecución a Gradle
+      - name: Compilar APK Nativo (Debug)
         run: |
-          # Detecta si la carpeta ClanClashApp existe y entra en ella
+          # Detecta automáticamente si está dentro de la carpeta ClanClashApp o en la raíz
           if [ -d "ClanClashApp" ]; then
             cd ClanClashApp
           fi
+          
           chmod +x gradlew
-
-      - name: Compilar APK (Debug)
-        run: |
-          if [ -d "ClanClashApp" ]; then
-            cd ClanClashApp
-          fi
           ./gradlew assembleDebug
 
       - name: Subir APK generado
@@ -52,6 +48,5 @@ jobs:
         with:
           name: ClanClash-Nativo-APK
           path: |
-            ClanClashApp/app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/debug/*.apk
+            **/build/outputs/apk/debug/*.apk
             
