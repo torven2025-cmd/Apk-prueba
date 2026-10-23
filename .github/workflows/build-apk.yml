@@ -29,22 +29,27 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Buscar gradlew y compilar APK (Debug)
+      - name: Instalar Gradle y compilar APK (Debug)
         run: |
-          # Buscar automáticamente dónde está el archivo gradlew en el repositorio
-          GRADLEW_PATH=$(find . -name "gradlew" | head -n 1)
+          sudo apt-get update && sudo apt-get install -y gradle
           
-          if [ -z "$GRADLEW_PATH" ]; then
-            echo "ERROR CRÍTICO: No se encontró el archivo gradlew en el proyecto."
+          # Buscar la carpeta del proyecto que contiene settings.gradle
+          BUILD_DIR=$(find . -name "settings.gradle" -o -name "build.gradle" | head -n 1)
+          if [ -n "$BUILD_DIR" ]; then
+            PROJECT_DIR=$(dirname "$BUILD_DIR")
+            echo "Carpeta del proyecto encontrada: $PROJECT_DIR"
+            cd "$PROJECT_DIR"
+          else
+            echo "ERROR: No se encontró la estructura de Gradle."
             exit 1
           fi
-          
-          # Obtener la carpeta exacta donde se encuentra gradlew
-          GRADLE_DIR=$(dirname "$GRADLEW_PATH")
-          echo "Carpeta de compilación encontrada en: $GRADLE_DIR"
-          
-          # Entrar a la carpeta, dar permisos y compilar
-          cd "$GRADLE_DIR"
+
+          # Si el proyecto no tiene gradlew, lo generamos automáticamente
+          if [ ! -f "gradlew" ]; then
+            echo "Generando gradlew faltante..."
+            gradle wrapper
+          fi
+
           chmod +x gradlew
           ./gradlew assembleDebug
 
