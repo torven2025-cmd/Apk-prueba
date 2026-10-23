@@ -29,7 +29,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Instalar Gradle Moderno y Compilar APK
+      - name: Instalar Gradle 8.7 y Compilar APK
         run: |
           # Buscar la carpeta interna del proyecto (ClanClashApp o similar)
           if [ -d "ClanClashApp" ]; then
@@ -43,15 +43,15 @@ jobs:
 
           echo "Directorio de trabajo: $(pwd)"
 
-          # Descargar e instalar una versión moderna de Gradle (8.5) para soportar dependencyResolutionManagement
-          echo "Descargando Gradle moderno..."
-          wget -q https://services.gradle.org/distributions/gradle-8.5-bin.zip
-          unzip -q gradle-8.5-bin.zip
-          export PATH="$(pwd)/gradle-8.5/bin:$PATH"
+          # Descargar e instalar Gradle 8.7 requerido por el proyecto
+          echo "Descargando Gradle 8.7..."
+          wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
+          unzip -q gradle-8.7-bin.zip
+          export PATH="$(pwd)/gradle-8.7/bin:$PATH"
 
-          # Generar el wrapper moderno compatible con el proyecto
-          echo "Generando Gradle Wrapper..."
-          gradle wrapper --gradle-version 8.5
+          # Generar el wrapper compatible con la versión 8.7
+          echo "Generando Gradle Wrapper 8.7..."
+          gradle wrapper --gradle-version 8.7
 
           # Dar permisos de ejecución y compilar el APK en modo Debug
           chmod +x gradlew
